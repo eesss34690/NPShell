@@ -27,10 +27,11 @@ int Npshell::line_cmd()
 		// special case: |N
 		// the counter of redirect output should be set
 		// note the cmd as redirect command
-		if (start_idx && m_input[start_idx]- '0' >= 0 && m_input[start_idx]- '0'< 10)
+		if (start_idx > 0 && m_input[start_idx]- '0' >= 0 && m_input[start_idx]- '0'< 10)
 		{
 			m_pipe.back().set_cnt(stoi(m_input.substr(start_idx, end_idx- start_idx)));
 			m_pipe.back().set_flag(1);
+			break;
 		}
 		// deal with space 
 		else
@@ -90,107 +91,113 @@ int Npshell::line_cmd()
 		// different action
 		if (cmd == "setenv")
 		{
-				auto space_2 = m_cmd.front().find(' ', space + 1);
-				setenv(m_cmd.front().substr(space + 1, space_2 - space).c_str(), \
-					m_cmd.front().substr(space_2 + 1, m_cmd.front().length() - space_2 - 1).c_str(), 1);
-				m_cmd.pop();
+			auto space_2 = m_cmd.front().find(' ', space + 1);
+			setenv(m_cmd.front().substr(space + 1, space_2 - space - 1).c_str(), \
+				m_cmd.front().substr(space_2 + 1, m_cmd.front().length() - space_2 - 1).c_str(), 1);
+			m_cmd.pop();
 		}
 		else if (cmd == "printenv")
 		{
-				getenv(m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1).c_str());
-				m_cmd.pop();
+			cout << getenv(m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1).c_str()) << endl;
+			m_cmd.pop();
 		}
 		else if (cmd == ">")
 		{
-				FILE* file;
-				file = fopen(m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1).c_str(), "w");
-				fputs(buf, file);
-				fclose(file);
-				m_cmd.pop();
+			FILE* file;
+			file = fopen(m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1).c_str(), "w");
+			fputs(buf, file);
+			fclose(file);
+			m_cmd.pop();
 		}
 		else if (cmd == "exit")
 			exit(0);
 		else
 		{
-				// use the command from ./bin
-				string file = "./bin" + cmd;
-				// pipe 2 fd table
-				pipe(fd_table_1);
-				pipe(fd_table_2);
-				signal(SIGCHLD, SIG_IGN);
-				child_pid = fork();
+			string file = "./bin/" + cmd;
+			struct stat buffer;	
+			if (stat(file.c_str(), &buffer) != 0)
+			{
+				cerr << "Unknown command: [" << cmd << "].";
+				m_cmd.pop();	
+				continue;
+			}
+			// pipe 2 fd table
+			pipe(fd_table_1);
+			pipe(fd_table_2);
+			signal(SIGCHLD, SIG_IGN);
+			child_pid = fork();
 				
 				// child process
-				if (child_pid == 0)
+			if (child_pid == 0)
+			{
+				// close pipe1-Write, pipe2-Read
+				close(fd_table_1[1]);
+				close(fd_table_2[0]);
+				// duplicate pipe1-Read to original STDIN \
+				// pipe2-Write to original STDOUT
+				dup2(fd_table_1[0], STDIN_FILENO);
+				dup2(fd_table_2[1], STDOUT_FILENO);
+				//execute the command
+				if (space == string::npos)
 				{
-					// close pipe1-Write, pipe2-Read
-					close(fd_table_1[1]);
-					close(fd_table_2[0]);
-					// duplicate pipe1-Read to original STDIN \
-					// pipe2-Write to original STDOUT
-					dup2(fd_table_1[0], STDIN_FILENO);
-					dup2(fd_table_2[1], STDOUT_FILENO);
-					//execute the command
-					if (space == string::npos)
-					{
-						auto status = execl(file.c_str(),cmd.c_str(),NULL);
-						if (status < 0)
-							perror(("error on "+ cmd).c_str());
-					}					
-					else
-					{
-						string arg = m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1);
-						auto status = execl(file.c_str(), cmd.c_str(), arg.c_str(), NULL);
-						if (status < 0)
-							perror(("error on "+ cmd+ " with arg: "+ arg).c_str());	
-					}
-					// close the fd table
-					close(fd_table_1[0]);
-					close(fd_table_2[1]);
-					exit(0);
-				}
-				// parent process
+					auto status = execl(file.c_str(),cmd.c_str(),NULL);
+					//if (status < 0)
+						//perror(("error on "+ cmd).c_str());
+				}					
 				else
 				{
-					// Pause the child process
-					signal(SIGCHLD, SIG_DFL);
-					// Fill the parent result into child
-					// close pipe1-Read, pipe2-Write
-					close(fd_table_1[0]);
-					close(fd_table_2[1]);
-					//write the previous queued result
-					if (prev_input_insert)
-					{
-						strcpy(buf, result.c_str());
-					}
-					// try to add it into pipe1 to let child read
-					if (write(fd_table_1[1], buf, sizeof(buf)) < 0)
-						perror("cannot write to pipe1 for read");
-					close(fd_table_1[1]);
-					// after copy the output for child, kill and reset the result buffer \
-					// and then, wait for pipe2 child process finish its task
-					int status;
-					kill(child_pid, SIGCHLD);
-					memset(buf, 0, sizeof(buf));
-					read(fd_table_2[0], buf, sizeof(buf));
-					close(fd_table_2[0]);
-					wait(&status);
-					
-					// special case when this is the end of the line
-					// set the line result for either STDOUT or put into lineup result queue
-					if (m_cmd.size() == 1)
-					{
-						if (!m_pipe.back().get_flag())
-						{
-							std::cout << buf;
-							m_pipe.pop_back();
-						}
-						else
-							m_pipe.back().set_result(m_pipe.back().get_result() + buf);
-					}
-					prev_input_insert = false;
-					m_cmd.pop();
+					string arg = m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1);
+					auto status = execl(file.c_str(), cmd.c_str(), arg.c_str(), NULL);
+					//if (status < 0)
+						//perror(("error on "+ cmd+ " with arg: "+ arg).c_str());	
 				}
+				// close the fd table
+				close(fd_table_1[0]);
+				close(fd_table_2[1]);
+				exit(0);
+			}
+			// parent process
+			else
+			{
+				// Pause the child process
+				signal(SIGCHLD, SIG_DFL);
+				// Fill the parent result into child
+				// close pipe1-Read, pipe2-Write
+				close(fd_table_1[0]);
+				close(fd_table_2[1]);
+				//write the previous queued result
+				if (prev_input_insert)
+				{
+					strcpy(buf, result.c_str());
+				}
+				// try to add it into pipe1 to let child read
+				if (write(fd_table_1[1], buf, sizeof(buf)) < 0)
+					perror("cannot write to pipe1 for read");
+				close(fd_table_1[1]);
+				// after copy the output for child, kill and reset the result buffer \
+				// and then, wait for pipe2 child process finish its task
+				int status;
+				kill(child_pid, SIGCHLD);
+				memset(buf, 0, sizeof(buf));
+				read(fd_table_2[0], buf, sizeof(buf));
+				close(fd_table_2[0]);
+				wait(&status);
+				
+				// special case when this is the end of the line
+				// set the line result for either STDOUT or put into lineup result queue
+				if (m_cmd.size() == 1)
+				{
+					if (!m_pipe.back().get_flag())
+					{
+						std::cout << buf;
+						m_pipe.pop_back();
+					}
+					else
+						m_pipe.back().set_result(m_pipe.back().get_result() + buf);
+				}
+				prev_input_insert = false;
+				m_cmd.pop();
+			}
 		}			
 	}
 	return 0;			

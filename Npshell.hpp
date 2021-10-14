@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 using namespace std;
 

@@ -9,7 +9,7 @@ int main(int argc, char *argv[]){
     std::string input;
     
     while(1){
-        cout << "%";
+        cout << "% ";
         getline(cin, input);
         
 	if(input.empty()) continue;

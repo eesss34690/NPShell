@@ -1,8 +1,7 @@
 CXX = g++
-STD = c++11
 
 
-NPShell: main.o Npshell.o Pipe_block.o
+NPShell: main.o Npshell.o Pipe_block.o precompile
 	$(CXX) main.o Npshell.o Pipe_block.o -o NPShell
 
 Pipe_block.o: Pipe_block.cpp Pipe_block.hpp
@@ -14,5 +13,13 @@ Npshell.o: Npshell.cpp Npshell.hpp Pipe_block.hpp
 main.o: main.cpp Npshell.hpp
 	$(CXX) -c main.cpp -o main.o
 
+precompile:
+	cp /usr/bin/ls ./bin/
+	cp /usr/bin/cat ./bin
+	$(CXX) ./cmds/noop.cpp -o ./bin/noop
+	$(CXX) ./cmds/number.cpp -o ./bin/number
+	$(CXX) ./cmds/removetag.cpp -o ./bin/removetag
+	$(CXX) ./cmds/removetag0.cpp -o ./bin/removetag0
+
 clean:
-	rm *.o
+	rm *.o NPShell *.txt ./bin/*
