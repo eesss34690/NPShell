@@ -10,6 +10,16 @@ void Npshell::set_input (string input)
 	m_input = input;
 }
 
+size_t Npshell::find_char(string cmd, char target, int start_idx)
+{
+	return cmd.find(target, start_idx);
+}
+
+string Npshell::separate_output(string cmd, int start_idx, int end_idx)
+{
+	return cmd.substr(start_idx, end_idx - start_idx);		
+}
+
 int Npshell::line_cmd()
 {
 	// step 1: separate the input
@@ -20,17 +30,17 @@ int Npshell::line_cmd()
 	m_pipe.push_back(*(new Pipe_block));
 	while (end_idx < m_input.length())
 	{
-		end_idx = m_input.find('|', start_idx);
+		end_idx = find_char(m_input, '|', start_idx);
 		if (end_idx == string::npos)
 			end_idx = m_input.length();
 		
 		// special case: |N
 		// the counter of redirect output should be set
 		// note the cmd as redirect command
-		if (start_idx > 0 && m_input[start_idx]- '0' >= 0 && m_input[start_idx]- '0'< 10)
+		if (start_idx > 0 && m_input[start_idx] != ' ')
 		{
-			m_pipe.back().set_cnt(stoi(m_input.substr(start_idx, end_idx- start_idx)));
-			m_pipe.back().set_flag(1);
+			m_pipe.back().set_cnt(stoi(separate_output(m_input, start_idx, end_idx)));
+			m_pipe.back().set_flag(true);
 			break;
 		}
 		// deal with space 
@@ -41,14 +51,15 @@ int Npshell::line_cmd()
 		}
 
 		// the command in the middle should be set without the final space
-		single_cmd = (end_idx == m_input.length())? m_input.substr(start_idx, end_idx - start_idx) : m_input.substr(start_idx, end_idx - start_idx - 1);
+		single_cmd = (end_idx == m_input.length())? separate_output(m_input, start_idx, end_idx) \
+			: separate_output(m_input, start_idx, end_idx - 1);
 		
 		// if there is > redirect output, separate to 2 commands
-		auto ge_idx = single_cmd.find('>', 0);
+		auto ge_idx = find_char(single_cmd, '>', 0);
 		if (ge_idx != string::npos)
 		{
-			m_cmd.push(single_cmd.substr(0, ge_idx - 1));
-			m_cmd.push(single_cmd.substr(ge_idx, single_cmd.length() - ge_idx));
+			m_cmd.push(separate_output(single_cmd, 0, ge_idx - 1));
+			m_cmd.push(separate_output(single_cmd, ge_idx, single_cmd.length()));
 		}		
 		else
 		{
@@ -85,26 +96,26 @@ int Npshell::line_cmd()
 	while (!m_cmd.empty())
 	{
 		// find the command action 
-		space = m_cmd.front().find(' ', 0);
-		string cmd = m_cmd.front().substr(0, space);
+		space = find_char(m_cmd.front(), ' ', 0);
+		string cmd = separate_output(m_cmd.front(), 0, space);
 		
 		// different action
 		if (cmd == "setenv")
 		{
-			auto space_2 = m_cmd.front().find(' ', space + 1);
-			setenv(m_cmd.front().substr(space + 1, space_2 - space - 1).c_str(), \
-				m_cmd.front().substr(space_2 + 1, m_cmd.front().length() - space_2 - 1).c_str(), 1);
+			auto space_2 = find_char(m_cmd.front(), ' ', space + 1);
+			setenv(separate_output(m_cmd.front(), space + 1, space_2).c_str(), \
+				separate_output(m_cmd.front(), space_2 + 1, m_cmd.front().length()).c_str(), 1);
 			m_cmd.pop();
 		}
 		else if (cmd == "printenv")
 		{
-			cout << getenv(m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1).c_str()) << endl;
+			cout << getenv(separate_output(m_cmd.front(), space + 1, m_cmd.front().length()).c_str()) << endl;
 			m_cmd.pop();
 		}
 		else if (cmd == ">")
 		{
 			FILE* file;
-			file = fopen(m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1).c_str(), "w");
+			file = fopen(separate_output(m_cmd.front(), space + 1, m_cmd.front().length()).c_str(), "w");
 			fputs(buf, file);
 			fclose(file);
 			m_cmd.pop();
@@ -117,7 +128,7 @@ int Npshell::line_cmd()
 			struct stat buffer;	
 			if (stat(file.c_str(), &buffer) != 0)
 			{
-				cerr << "Unknown command: [" << cmd << "].";
+				cerr << "Unknown command: [" << cmd << "].\n";
 				m_cmd.pop();	
 				continue;
 			}
@@ -127,7 +138,7 @@ int Npshell::line_cmd()
 			signal(SIGCHLD, SIG_IGN);
 			child_pid = fork();
 				
-				// child process
+			// child process
 			if (child_pid == 0)
 			{
 				// close pipe1-Write, pipe2-Read
@@ -146,8 +157,19 @@ int Npshell::line_cmd()
 				}					
 				else
 				{
-					string arg = m_cmd.front().substr(space + 1, m_cmd.front().length() - space - 1);
-					auto status = execl(file.c_str(), cmd.c_str(), arg.c_str(), NULL);
+					size_t idx = space, idx2 = space;
+					size_t pos = 0;
+					char *argv[256];
+					argv[0] = const_cast<char*>(cmd.c_str());
+					while (idx != string::npos)
+					{
+						idx2 = find_char(m_cmd.front(), ' ', idx + 1);
+						argv[++pos] = const_cast<char*>(separate_output(m_cmd.front(),\
+						 idx + 1, idx2).c_str());
+						idx = idx2;
+					}
+					argv[++pos] = NULL;
+					auto status = execvp(file.c_str(), argv);
 					//if (status < 0)
 						//perror(("error on "+ cmd+ " with arg: "+ arg).c_str());	
 				}

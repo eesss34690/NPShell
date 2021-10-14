@@ -22,5 +22,7 @@ private:
 	int              fd_table_2[2];
 public:
 	void set_input (string input);
-	int line_cmd();	
+	int line_cmd();
+	size_t find_char(string cmd, char target, int start_idx);
+	string separate_output(string cmd, int start_idx, int end_idx);	
 };

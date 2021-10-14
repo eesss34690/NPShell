@@ -13,8 +13,8 @@ Npshell.o: Npshell.cpp Npshell.hpp Pipe_block.hpp
 main.o: main.cpp Npshell.hpp
 	$(CXX) -c main.cpp -o main.o
 
-precompile:
-	cp /usr/bin/ls ./bin/
+precompile: ./cmds/noop.cpp ./cmds/number.cpp ./cmds/removetag.cpp ./cmds/removetag0.cpp
+	cp /usr/bin/ls ./bin
 	cp /usr/bin/cat ./bin
 	$(CXX) ./cmds/noop.cpp -o ./bin/noop
 	$(CXX) ./cmds/number.cpp -o ./bin/number
