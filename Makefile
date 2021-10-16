@@ -1,17 +1,16 @@
-CXX = g++
+CXX = clang++
+CPPFLAGS = -Wall -O2 -pedantic -std=c++11
 
+OBJ := main.o Pipe_block.o Command.o Pipe_IO.o Pipeline.o
 
-NPShell: main.o Npshell.o Pipe_block.o precompile
-	$(CXX) main.o Npshell.o Pipe_block.o -o NPShell
+NPShell: $(OBJ) precompile
+	$(CXX) $(CPPFLAGS) $(OBJ) -o NPShell
 
-Pipe_block.o: Pipe_block.cpp Pipe_block.hpp
-	$(CXX) -c Pipe_block.cpp -o Pipe_block.o
+%.o: %.cpp
+	$(CXX) $(CPPFLAGS) -c $< -o $@
 
-Npshell.o: Npshell.cpp Npshell.hpp Pipe_block.hpp
-	$(CXX) -c Npshell.cpp -o Npshell.o
-
-main.o: main.cpp Npshell.hpp
-	$(CXX) -c main.cpp -o main.o
+./bin/%: ./cmds/%.cpp
+	$(CXX) $(CPPFLAGS) -c $< -o ./bin/%
 
 precompile: ./cmds/noop.cpp ./cmds/number.cpp ./cmds/removetag.cpp ./cmds/removetag0.cpp
 	cp /usr/bin/ls ./bin

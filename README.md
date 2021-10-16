@@ -3,10 +3,24 @@ A NetProgramming Implementation of shell environment
 
 ## Structure
 - For ```main.cpp```, the function keeps getting the new line command.
-- The command is wrapped by ```Npshell``` object, which contains the original line and how to process the line.
+- The command is wrapped by ```Command``` object, which separate the command by pipe and categorize each functionality.
+- The ```Pipe_IO``` contains each small file IO for the small task
+- The ```pipe_block``` process the line by forking and repiping.
+- ```Pipeline``` is the whole structure for all shell. It has a table that can use maximum capacity to store all the forks in avoidance of handling fork error.
 
 ## Usage
-```TODO```
+1. ```make```
+2. ```./NPShell```
 
-## Future Implementation
-- The line should be separated, and each of the node command can be in a individual object for forking and executing.
+## Functionality check
+[x] ```printenv```
+[x] ```setenv```
+[x] ```cat/ ls```
+[x] ```./bin```
+[ ] ```file IO```
+[ ] ```|N```
+:::warning
+1. child sometimes hanging forever
+2. ```|N```: segmentation fault
+3. ```file IO```: no output
+:::

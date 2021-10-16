@@ -1,11 +1,13 @@
 #include <string>
 #include <iostream>
-#inlcude "Command.hpp"
+#include <signal.h>
+#include "typedef.hpp"
+
 using namespace std;
 
 int main(int argc, char *argv[]){
     string input;
-   
+    Pipeline all;   
     // set the signal handler
     signal(SIGCHLD, [](int signo) {
         int status;
@@ -17,14 +19,30 @@ int main(int argc, char *argv[]){
         
 	if(input.empty()) continue;
         Command cmd(input);
+	
 	for (auto &i: cmd.get_block())
 	{
-		auto status = i.execute();
+		auto status = i.execute(all);
 		while (status == 1)  // fork error
 			usleep(1500);
-		if (status == 2)  // no such command
-			cout << "Unknown command: [" << task.GetFile() << "]." << endl;
+		if (status == 0)
+			continue;
+		cerr << "Fail execution on" << i.get_argv()[0] <<endl;
 	}
+	
+	auto last = cmd.get_block().back();
+	if (last.get_flag() == 1)
+	{
+		all.add_all_proc(last.get_cnt(), all.get_child_proc(0));
+	}
+	for (auto &i: all.get_child_proc(0))
+	{
+		int status;
+		waitpid(i, &status, 0);
+	}
+	all.next_();
+
     }
+
     return 0;
 }
