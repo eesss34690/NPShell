@@ -1,18 +1,35 @@
 #include <string>
+#include <list>
+#include <queue>
+#include <fstream>
+#include <unistd.h>
+#include <signal.h>
+#include <cstring>
+#include <iostream>
+#include <sys/wait.h>
+#include <sys/stat.h>
 
 using namespace std;
+
 class Pipe_block
 {
 private:
-	string      m_result;
-	int         m_cnt;
-	bool        m_flag;
+	int 		m_num;
+	int 		m_flag;
+	string 		m_filename;
+	char * []	m_argv;
+	int printenv();
+	int setenv();
+
 public:
 	Pipe_block();
-	void        set_cnt(int cnt);
-	void        set_flag(bool flag);
-	void        set_result(string result);
-	int         get_cnt();
-	bool        get_flag();
-	string      get_result();
+	int execute();
+	void set_cnt(int num) {m_num = num;}
+	void set_flag(int flag) {m_flag = flag;}
+	void set_file(string filename) {m_filename = filename;}
+	void set_argv(char * argv []) {m_argv = argv;}
+	int get_cnt() {return m_num;}
+	int get_flag() {return m_num;}
+	string get_file() {return m_filename;}
+	char * [] get_argv() {return m_argv;}
 };

@@ -12,17 +12,15 @@
 
 using namespace std;
 
-class Npshell
+class Command
 {
 private:
-	string           m_input;
-	list<Pipe_block> m_pipe;
-	queue<string>    m_cmd;
-	int              fd_table_1[2];
-	int              fd_table_2[2];
-public:
-	void set_input (string input);
-	int line_cmd();
+	list<Pipe_block> m_block;
 	size_t find_char(string cmd, char target, int start_idx);
 	string separate_output(string cmd, int start_idx, int end_idx);	
+
+public:
+	Command(string cmd);
+	list<Pipe_block> get_block () {return m_block;}
+
 };
