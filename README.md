@@ -13,14 +13,15 @@ A NetProgramming Implementation of shell environment
 2. ```./NPShell```
 
 ## Functionality check
-[x] ```printenv```
-[x] ```setenv```
-[x] ```cat/ ls```
-[x] ```./bin```
-[ ] ```file IO```
-[ ] ```|N```
-:::warning
+- [x] ```printenv```
+- [x] ```setenv```
+- [x] ```cat/ ls```
+- [x] ```./bin```
+- [ ] ```file IO```
+- [ ] ```|N```
+
+----
 1. child sometimes hanging forever
 2. ```|N```: segmentation fault
 3. ```file IO```: no output
-:::
+----
