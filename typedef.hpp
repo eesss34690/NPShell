@@ -17,6 +17,7 @@ using namespace std;
 class Pipe_IO
 {
 private:
+	bool exist;
 	int fd_table[2];
 public:
 	Pipe_IO();
@@ -36,6 +37,7 @@ private:
 	int now;
 	int get_num(int offset) {return (now + offset) % MaxForks;}
 public:
+	int get() {return now;}
 	Pipeline() {now = 0;}
 	Pipe_IO& get_pipe(int offset) {return m_pipes[get_num(offset)];}
 	void set_pipe(int offset, Pipe_IO pipe) {m_pipes[get_num(offset)] = pipe;}
@@ -51,6 +53,7 @@ public:
 class Pipe_block
 {
 private:
+	bool 		exist;
 	Pipe_IO         m_pipe;
 	int 		m_num;
 	int 		m_flag;
@@ -67,7 +70,7 @@ public:
 	void set_file(string filename) {m_filename = filename;}
 	void set_argv(vector<string> argv) {m_argv = argv;}
 	int get_cnt() {return m_num;}
-	int get_flag() {return m_num;}
+	int get_flag() {return m_flag;}
 	string get_file() {return m_filename;}
 	vector<string> get_argv() {return m_argv;}
 };
