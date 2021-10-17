@@ -1,5 +1,5 @@
 CXX = clang++
-CPPFLAGS = -Wall -O2 -pedantic -std=c++11
+CPPFLAGS = -Wall -O2 -g -pedantic -std=c++11
 
 OBJ := main.o Pipe_block.o Command.o Pipe_IO.o Pipeline.o
 

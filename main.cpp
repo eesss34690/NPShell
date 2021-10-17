@@ -22,12 +22,12 @@ int main(int argc, char *argv[]){
 	
 	for (auto &i: cmd.get_block())
 	{
+		cout << cmd.get_block().size()<< " current pipe block: " << i.get_argv()[0] <<endl;
 		auto status = i.execute(all);
 		while (status == 1)  // fork error
 			usleep(1500);
-		if (status == 0)
-			continue;
-		cerr << "Fail execution on" << i.get_argv()[0] <<endl;
+		if (status != 0)
+			cerr << "Fail execution on" << i.get_argv()[0] <<endl;
 	}
 	
 	auto last = cmd.get_block().back();

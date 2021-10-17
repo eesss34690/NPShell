@@ -26,22 +26,22 @@ Command::Command( string cmd )
 	auto start_idx = 0;
 	string single_cmd;
 	
-	m_block.push_back( *new Pipe_block );
 	while (end_idx < cmd.length())
 	{
+		m_block.push_back( *(new Pipe_block) );	
 		end_idx = find_char(cmd, '|', start_idx);
 		if (end_idx == string::npos)
 			end_idx = cmd.length();
-		
+	
+		m_block.back().set_flag(4);	
 		// special case: |N
 		// the counter of redirect output should be set
 		// note the cmd as redirect command
-		if (start_idx > 0 && cmd[start_idx] != ' ')
+		if (end_idx < cmd.length() && cmd[1 + end_idx] != ' ')
 		{
-			m_block.pop_back();
-			m_block.back().set_cnt(stoi(separate_output(cmd, start_idx, end_idx)));
+			m_block.back().set_cnt(stoi(separate_output(cmd, 1 + end_idx, cmd.length())));
+			end_idx = cmd.length();
 			m_block.back().set_flag(1);
-			break;
 		}
 		// special case: > $(file)
 		auto ge_idx = find_char(cmd, '>', 0);
@@ -49,7 +49,6 @@ Command::Command( string cmd )
 		{
 			m_block.back().set_flag(2);
 			m_block.back().set_file(separate_output(cmd, ge_idx + 1, cmd.length()));
-			break;
 		}
 		// special case: !N	
 		ge_idx = find_char(cmd, '!', 0);
@@ -57,12 +56,12 @@ Command::Command( string cmd )
 		{
 			m_block.back().set_flag(0);
 			m_block.back().set_cnt(stoi(separate_output(cmd, ge_idx + 1, cmd.length())));
-		}
-		single_cmd = separate_output(cmd, start_idx, end_idx);
-			
+		}	
 		// find the command action 
+		single_cmd = separate_output(cmd, start_idx, end_idx);
 		auto space = find_char(single_cmd, ' ', 0);
 		string action = separate_output(single_cmd, 0, space);
+		cout << "action: " <<action<<endl;
 		// type: builtin
 		if (action == "setenv")
 		{
@@ -94,11 +93,12 @@ Command::Command( string cmd )
 				argv.push_back(separate_output(single_cmd, idx + 1, idx2));
 				idx = idx2;
 			}
-			m_block.back().set_flag(4);
+			if (m_block.back().get_flag() < 3)
+				argv.pop_back();
+			if (m_block.back().get_flag() == 2)
+				argv.pop_back();
 			m_block.back().set_argv(argv);
-			m_block.back().set_file("./bin/" + action);
 		}
 		start_idx = end_idx + 1;
-	
 	}
 }

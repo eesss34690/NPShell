@@ -5,6 +5,8 @@
 void Pipeline::add_pipe(int offset)
 {
 	int num = get_num(offset);
+	cout << "add_pipe: " << num <<endl;
+	cout <<"mode: " <<m_pipes[num].mode_on() <<endl;
 	if (m_pipes[num].mode_on() == false)
 		m_pipes[num] = Pipe_IO::create();
 }
@@ -34,5 +36,5 @@ void Pipeline::next_()
 {
 	m_pipes[now].close();
 	m_child_proc[now].clear();
-	now = get_num(now + 1);
+	now = (now == 2047)? 0: (now + 1);
 }
