@@ -40,7 +40,7 @@ private:
 public:
 	int get() {return now;}
 	Pipeline() {now = 0;}
-	Pipe_IO& get_pipe(int offset) {cout << "getnum: " << get_num(offset) << endl;return m_pipes[get_num(offset)];}
+	Pipe_IO& get_pipe(int offset) {return m_pipes[get_num(offset)];}
 	void set_pipe(int offset, Pipe_IO pipe) {m_pipes[get_num(offset)] = pipe;}
 	void add_pipe(int offset);
 	void close(int offset) {m_pipes[get_num(offset)].close();}

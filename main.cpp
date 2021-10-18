@@ -25,15 +25,20 @@ int main(int argc, char *argv[]){
 	//if (!shell_fd.mode_on())
 	//	shell_fd.construct_pipe();
 	
-	
+	int first = true;
+	if (all.get_pipe(0).mode_on())
+	{
+		first = false;
+	}
 	for (int i=0; i< cmd.get_block().size(); i++)
 	//for (auto &i: cmd.get_block())
 	{
-		cout << cmd.get_block().size()<< " current pipe block: " << cmd.get_block()[i].get_argv()[0] <<endl;
+		cout<< " current pipe block: " << cmd.get_block()[i].get_argv()[0] <<endl;
 		int status;
-		while ( (status = cmd.get_block()[i].execute(all,\
-			(i)? false: true, (i == cmd.get_block().size() - 1)? true: false)) == 1)  // fork error
+		while ( (status = cmd.get_block()[i].execute(all, first\
+			, (i == cmd.get_block().size() - 1)? true: false)) == 1)  // fork error
 			usleep(1500);
+		first = false;
 		if (status != 0)
 			cerr << "Fail execution on" << cmd.get_block()[i].get_argv()[0] <<endl;
 		usleep(1500);

@@ -61,7 +61,6 @@ Command::Command( string cmd )
 		single_cmd = separate_output(cmd, start_idx, end_idx);
 		auto space = find_char(single_cmd, ' ', 0);
 		string action = separate_output(single_cmd, 0, space);
-		cout << "action: " <<action<<endl;
 		// type: builtin
 		if (action == "setenv")
 		{
