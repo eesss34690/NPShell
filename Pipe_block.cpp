@@ -63,8 +63,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 	else
 	{
 		cout << "m_num: " << m_num <<endl;
-		m_pipe_in = all.get_pipe(0);
-		m_pipe_out = Pipe_IO::create();
+		m_pipe = all.get_pipe(m_num);
 		//if (!m_pipe.mode_on())
 		//{
 		//	cout << "create\n";
@@ -73,10 +72,10 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 		//}
 		//else
 		//{
-		//m_pipe.construct_pipe();
+			//m_pipe.construct_pipe();
 		//}
-		cout << all.get() << " pipe in: "<< m_pipe_in.get_in() <<" " <<m_pipe_out.get_out() << endl;
-		cout << "\tpipe out: " << m_pipe_out.get_in() << " " <<m_pipe_out.get_out() <<endl;
+		Pipe_IO  new_fd = Pipe_IO::create();
+		//cout << all.get() << " pipe io: "<< m_pipe.get_in() <<" " <<m_pipe.get_out() << endl;
 		// get its Pipe
 		//if (!exist)
 		//{
@@ -96,9 +95,9 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 		else if (child_pid > 0)
 		{
 			// child will do the job, close it
-			::close(m_pipe_out.get_out());
-			::close(m_pipe_in.get_in());
-			::close(m_pipe_in.get_out());
+			m_pipe.close();
+			all.set_pipe(0, new_fd);
+			::close(new_fd.get_out());
 			cout << "Own child process: " << child_pid <<endl;
 			all.add_process(0, child_pid);
 			return 0;
@@ -136,7 +135,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 			{
 				if (!first)
 				{
-					int fd = m_pipe_in.get_in();
+					int fd = m_pipe.get_in();
 					if (fd != -1)
 					{
 						cout <<"enter in\n";
@@ -145,7 +144,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 				}
 				if (!last)
 				{
-					int fd = m_pipe_out.get_out();
+					int fd = new_fd.get_out();
 					if (fd != -1)
 					{
 						cout << "enter out\n";
@@ -153,14 +152,10 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 					}
 				}	
 			}
-			cout << "final fd in : " << m_pipe_in.get_in() <<" " << m_pipe_in.get_out() << endl;
-			cout << "final fd out: " << m_pipe_out.get_out()<<" "<< m_pipe_out.get_out()<<endl;
+			cout << "final fd: " << m_pipe.get_in() <<" " << m_pipe.get_out() << endl;
 			// finish fd table reassignment, close it
-			//m_pipe.close();
-			::close(m_pipe_out.get_in());
-			::close(m_pipe_in.get_in());
-			::close(m_pipe_in.get_out());
-			::close(m_pipe_out.get_out());
+			m_pipe.close();
+			new_fd.close();
 			
 			//all.close_all();
 			// execution

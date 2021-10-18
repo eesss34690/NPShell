@@ -55,16 +55,15 @@ class Pipe_block
 {
 private:
 	bool 		exist;
-	Pipe_IO         m_pipe_in;
-	Pipe_IO 	m_pipe_out;
+	Pipe_IO         m_pipe;
 	int 		m_num;
 	int 		m_flag;
 	string 		m_filename;
 	vector<string>	m_argv;
-public:
 	int printenv();
 	int setenv();
 	char ** parse_arg();
+public:
 	Pipe_block();
 	int execute(Pipeline& all, bool first, bool last);
 	void set_cnt(int num) {m_num = num;}
