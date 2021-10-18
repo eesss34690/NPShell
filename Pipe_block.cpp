@@ -97,7 +97,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 			// child will do the job, close it
 			m_pipe.close();
 			all.set_pipe(0, new_fd);
-			::close(new_fd.get_out());
+			//::close(new_fd.get_out());
 			cout << "Own child process: " << child_pid <<endl;
 			all.add_process(0, child_pid);
 			return 0;
