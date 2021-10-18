@@ -13,6 +13,12 @@ Pipe_IO Pipe_IO::create()
 	return pipe;
 }
 
+void Pipe_IO::construct_pipe()
+{
+	if (::pipe(fd_table) < 0)
+		cerr << "pipe create fail!!!\n";
+}
+
 int Pipe_IO::close()
 {
 	int result = 0;

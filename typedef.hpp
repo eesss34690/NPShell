@@ -22,6 +22,7 @@ private:
 public:
 	Pipe_IO();
 	static Pipe_IO create();
+	void construct_pipe();
 	int get_out() {return fd_table[1];}
 	int get_in() {return fd_table[0];}
 	bool mode_on() {return (fd_table[0] != -1 || fd_table[1] != -1);}
@@ -39,7 +40,7 @@ private:
 public:
 	int get() {return now;}
 	Pipeline() {now = 0;}
-	Pipe_IO& get_pipe(int offset) {return m_pipes[get_num(offset)];}
+	Pipe_IO& get_pipe(int offset) {cout << "getnum: " << get_num(offset) << endl;return m_pipes[get_num(offset)];}
 	void set_pipe(int offset, Pipe_IO pipe) {m_pipes[get_num(offset)] = pipe;}
 	void add_pipe(int offset);
 	void close(int offset) {m_pipes[get_num(offset)].close();}
@@ -64,7 +65,7 @@ private:
 	char ** parse_arg();
 public:
 	Pipe_block();
-	int execute(Pipeline& all);
+	int execute(Pipeline& all, bool first, bool last);
 	void set_cnt(int num) {m_num = num;}
 	void set_flag(int flag) {m_flag = flag;}
 	void set_file(string filename) {m_filename = filename;}
@@ -78,12 +79,12 @@ public:
 class Command
 {
 private:
-	list<Pipe_block> m_block;
+	vector<Pipe_block> m_block;
 	size_t find_char(string cmd, char target, int start_idx);
 	string separate_output(string cmd, int start_idx, int end_idx);	
 
 public:
 	Command(string cmd);
-	list<Pipe_block> get_block () {return m_block;}
+	vector<Pipe_block> get_block () {return m_block;}
 
 };

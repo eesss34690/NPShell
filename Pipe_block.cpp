@@ -48,7 +48,7 @@ char ** Pipe_block::parse_arg()
 	return arg;
 }
 
-int Pipe_block::execute(Pipeline& all)
+int Pipe_block::execute(Pipeline& all, bool first, bool last)
 {
 	if (m_flag == 5)
 	{
@@ -62,16 +62,29 @@ int Pipe_block::execute(Pipeline& all)
 	}
 	else
 	{
+		cout << "m_num: " << m_num <<endl;
+		m_pipe = all.get_pipe(m_num);
+		//if (!m_pipe.mode_on())
+		//{
+		//	cout << "create\n";
+			//all.set_pipe(0, Pipe_IO::create());
+		//	m_pipe = all.get_pipe(m_num);
+		//}
+		//else
+		//{
+			m_pipe.construct_pipe();
+		//}
+		cout << all.get() << " pipe io: "<< m_pipe.get_in() <<" " <<m_pipe.get_out() << endl;
 		// get its Pipe
-		if (!exist)
-		{
-			cout << "create pipe IO\n";
-			m_pipe = all.get_pipe(0);
-			all.set_pipe(0, Pipe_IO::create());
-			exist = true;
-		}
-		if (m_flag < 2)
-			all.add_pipe(m_num);
+		//if (!exist)
+		//{
+		//	m_pipe = all.get_pipe(0);
+		//	cout << "create pipe IO\n";
+		//	all.set_pipe(0, Pipe_IO::create());
+		//	exist = true;
+		//}
+		//if (m_flag < 2)
+		//	all.add_pipe(m_num);
 		
 		// fork
 		pid_t child_pid = fork();
@@ -107,21 +120,40 @@ int Pipe_block::execute(Pipeline& all)
 				cout << "pipe 1 out: "<< fd << endl;
 				if (fd != -1)
 					dup2(fd, STDOUT_FILENO);
+				cout << "?\n";
 			}
 			else if (m_flag == 2)
 			{
 				int fd_file = open(m_filename.c_str(), (O_RDWR | O_CREAT | O_TRUNC), 0644);
 				dup2(fd_file, STDOUT_FILENO);
+				cout << "!\n";
 			}
 			else if (m_flag > 2)
 			{
-				int fd = m_pipe.get_in();
-				if (m_pipe.mode_on() && fd != -1)
-					dup2(fd, STDIN_FILENO);
+				if (!first)
+				{
+					int fd = m_pipe.get_in();
+					if (fd != -1)
+					{
+						cout <<"enter in\n";
+						dup2(fd, STDIN_FILENO);
+					}
+				}
+				if (!last)
+				{
+					int fd = m_pipe.get_out();
+					if (fd != -1)
+					{
+						cout << "enter out\n";
+						dup2(fd, STDOUT_FILENO);	
+					}
+				}	
 			}
+			cout << "final fd: " << m_pipe.get_in() <<" " << m_pipe.get_out() << endl;
 			// finish fd table reassignment, close it
 			m_pipe.close();
-			all.close_all();
+			
+			//all.close_all();
 			// execution
 			
 			char ** arg = parse_arg();
