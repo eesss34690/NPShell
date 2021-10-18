@@ -52,12 +52,14 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 {
 	if (m_flag == 5)
 	{
+		
 		for (int i=0; i< MaxForks; i++)
 		{
 			for (auto &j: all.get_child_proc(i))
 				kill(j, SIGKILL);
 		}
 		exit(0);
+		
 		return 0;
 	}
 	else
@@ -77,7 +79,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 		if (m_flag < 2&& all.get_pipe(m_num).mode_on())
 		{
 			new_fd = all.get_pipe(m_num);
-			new_fd.construct_pipe();
+			//new_fd.construct_pipe();
 		}
 		else
 			new_fd = Pipe_IO::create();
@@ -113,8 +115,15 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 			// case 1: !N (0)
 			if (m_flag == 0)
 			{
+				if (!first)
+				{
+					int fd = m_pipe.get_in();
+					if (fd != -1)
+					{
+						dup2(fd, STDIN_FILENO);
+					}
+				}
 				auto fd = new_fd.get_out();
-				cout << "pipe 1 out: " << fd <<endl;
 				if (fd != -1)
 					dup2(fd, STDERR_FILENO);
 				if (fd != -1)
@@ -123,23 +132,27 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 			// case 2: |N (1)
 			else if (m_flag == 1)
 			{
-				auto fd = new_fd.get_out();
-				cout << "pipe 1 out: "<< fd << endl;
-				if (fd != -1)
-					dup2(fd, STDOUT_FILENO);
-				cout << "?\n";
-			}
-			else if (m_flag == 2)
-			{
-				int fd_file = open(m_filename.c_str(), (O_RDWR | O_CREAT | O_TRUNC), 0644);
-				dup2(fd_file, STDOUT_FILENO);
-				cout << "!\n";
 				if (!first)
 				{
 					int fd = m_pipe.get_in();
 					if (fd != -1)
 					{
-						cout <<"enter in\n";
+						dup2(fd, STDIN_FILENO);
+					}
+				}
+				auto fd = new_fd.get_out();
+				if (fd != -1)
+					dup2(fd, STDOUT_FILENO);
+			}
+			else if (m_flag == 2)
+			{
+				int fd_file = open(m_filename.c_str(), (O_RDWR | O_CREAT | O_TRUNC), 0644);
+				dup2(fd_file, STDOUT_FILENO);
+				if (!first)
+				{
+					int fd = m_pipe.get_in();
+					if (fd != -1)
+					{
 						dup2(fd, STDIN_FILENO);
 					}
 				}
@@ -151,7 +164,6 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 					int fd = m_pipe.get_in();
 					if (fd != -1)
 					{
-						cout <<"enter in\n";
 						dup2(fd, STDIN_FILENO);
 					}
 				}
@@ -160,12 +172,10 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 					int fd = new_fd.get_out();
 					if (fd != -1)
 					{
-						cout << "enter out\n";
 						dup2(fd, STDOUT_FILENO);	
 					}
 				}	
 			}
-			cout << "final fd: " << m_pipe.get_in() <<" " << m_pipe.get_out() << endl;
 			// finish fd table reassignment, close it
 			m_pipe.close();
 			new_fd.close();

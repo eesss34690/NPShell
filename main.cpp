@@ -33,7 +33,6 @@ int main(int argc, char *argv[]){
 	for (int i=0; i< cmd.get_block().size(); i++)
 	//for (auto &i: cmd.get_block())
 	{
-		cout<< " current pipe block: " << cmd.get_block()[i].get_argv()[0] <<endl;
 		int status;
 		while ( (status = cmd.get_block()[i].execute(all, first\
 			, (i == cmd.get_block().size() - 1)? true: false)) == 1)  // fork error

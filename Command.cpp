@@ -80,6 +80,8 @@ Command::Command( string cmd )
 		else if (action == "exit")
 		{
 			m_block.back().set_flag(5);
+			m_block.back().set_argv({"exit"});
+			break;
 		}
 		// type: bin (4)
 		else {
