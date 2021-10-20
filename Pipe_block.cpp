@@ -105,7 +105,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 			// child will do the job, close it
 			m_pipe.close();
 			all.set_pipe(m_num, new_fd);
-			all.add_process(0, child_pid);
+			all.add_process(m_num, child_pid);
 			return 0;
 		}
 		// child proc.

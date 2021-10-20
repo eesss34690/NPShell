@@ -9,10 +9,10 @@ int main(int argc, char *argv[]){
     string input;
     Pipeline all;   
     // set the signal handler
-    signal(SIGCHLD, [](int signo) {
-        int status;
-        while (waitpid(-1, &status, WNOHANG) > 0);
-    }); 
+    //signal(SIGCHLD, [](int signo) {
+    //    int status;
+    //    while (waitpid(-1, &status, WNOHANG) > 0);
+    //}); 
     while(1){
         cout << "% ";
         getline(cin, input);
