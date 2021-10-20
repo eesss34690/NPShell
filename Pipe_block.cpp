@@ -191,7 +191,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 				else if (m_argv[0] == "setenv")
 					return setenv();
 			}
-			else if (execvp(("./bin/" + m_argv[0]).c_str(), arg) < 0)
+			else if (execvp(m_argv[0].c_str(), arg) < 0)
 			{
 				cerr << "Unknown command: [" << m_argv[0] << "]." << endl;
 				exit(0);
