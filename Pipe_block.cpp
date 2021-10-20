@@ -22,7 +22,6 @@ int Pipe_block::printenv()
 		if (env != NULL)
 			cout << env << endl;
 	}
-	raise(SIGCHLD);
 	return 0;
 }
 
@@ -32,7 +31,6 @@ int Pipe_block::setenv()
 		cerr << "Invalid arguments: setenv\n";
 	else
 		::setenv(m_argv[1].c_str(), m_argv[2].c_str(), 1);
-	raise(SIGCHLD);
 	return 0;
 }
 
@@ -49,19 +47,30 @@ char ** Pipe_block::parse_arg()
 }
 
 int Pipe_block::execute(Pipeline& all, bool first, bool last)
-{
-	if (m_flag == 5)
+{	
+	if (m_flag == 3)
 	{
-		
+		if (m_argv[0] == "printenv")
+			return printenv();
+		else if (m_argv[0] == "setenv")
+			return setenv();
+	}	
+	else if (m_flag == 5)
+	{
+
 		for (int i=0; i< MaxForks; i++)
 		{
 			for (auto &j: all.get_child_proc(i))
+			{
 				kill(j, SIGKILL);
+			}
 		}
-		cout << "fin\n";
-		exit(0);
-	}
-	else
+		//vector<pid_t> ex=all.get_exit();
+		//for (int i=0; i< ex.size(); i++)
+		//	kill(ex[i], SIGKILL);
+		exit(0);	
+		return 0;
+	}	
 	{
 		m_pipe = all.get_pipe(0);
 		//if (!m_pipe.mode_on())
@@ -183,6 +192,7 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 			// execution
 			
 			char ** arg = parse_arg();
+	
 			if (m_flag == 3)
 			{
 				if (m_argv[0] == "printenv")

@@ -35,11 +35,11 @@ class Pipeline
 private:
 	Pipe_IO m_pipes[MaxForks];
 	vector<pid_t> m_child_proc[MaxForks];
+	vector<pid_t> m_exit_child;
 	int now;
 	int get_num(int offset) {return (now + offset) % MaxForks;}
 public:
-	int get() {return now;}
-	Pipeline() {now = 0;}
+	Pipeline() {now = 0; m_exit_child.resize(0);}
 	Pipe_IO& get_pipe(int offset) {return m_pipes[get_num(offset)];}
 	void set_pipe(int offset, Pipe_IO pipe) {m_pipes[get_num(offset)] = pipe;}
 	void add_pipe(int offset);
@@ -48,6 +48,8 @@ public:
 	vector<pid_t> get_child_proc(int num) {return m_child_proc[get_num(num)];}
 	void add_process(int offset, pid_t child_pid);
 	void add_all_proc(int offset, vector<pid_t>child_pid);
+	void add_exit(pid_t child) {m_exit_child.push_back(child);}
+	vector<pid_t> get_exit() {return m_exit_child;}
 	void next_();
 };
 

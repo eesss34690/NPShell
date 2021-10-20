@@ -6,9 +6,9 @@
 using namespace std;
 
 int main(int argc, char *argv[]){
-    setenv("PATH", "./bin", 1);
+    setenv("PATH", "bin:.", 1);
     string input;
-    Pipeline all;   
+    Pipeline all;  
     // set the signal handler
     signal(SIGCHLD, [](int signo) {
         int status;
@@ -16,8 +16,15 @@ int main(int argc, char *argv[]){
     }); 
     while(1){
         cout << "% ";
-        getline(cin, input);
-        
+        if (!getline(cin, input)) {
+		for (int i=0; i< 2048; i++)
+		{
+			for (auto &j: all.get_child_proc(i))
+				kill(j, SIGKILL);
+		}
+		::exit(0);
+		return 0;
+        } 
 	if(input.empty()) continue;
         Command cmd(input);
 
@@ -37,16 +44,12 @@ int main(int argc, char *argv[]){
 		while ( (status = cmd.get_block()[i].execute(all, first\
 			, (i == cmd.get_block().size() - 1)? true: false)) == 1)  // fork error
 			usleep(1500);
-		if (cmd.get_block()[i].get_flag() == 5)
-			exit(0);
 		first = false;
-		cout << ":";
 		if (status != 0)
 			cerr << "Fail execution on" << cmd.get_block()[i].get_argv()[0] <<endl;
 		usleep(1500);
 	}
 	all.close(0);
-	cout << "?";
 	auto last = cmd.get_block().back();
 	if (last.get_flag() == 1)
 	{
