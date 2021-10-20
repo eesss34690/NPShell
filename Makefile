@@ -3,7 +3,7 @@ CPPFLAGS = -Wall -O2 -g -pedantic -std=c++11
 
 OBJ := main.o Pipe_block.o Command.o Pipe_IO.o Pipeline.o
 
-NPShell: $(OBJ) precompile
+NPShell: $(OBJ) 
 	$(CXX) $(CPPFLAGS) $(OBJ) -o NPShell
 
 %.o: %.cpp
@@ -12,6 +12,7 @@ NPShell: $(OBJ) precompile
 ./bin/%: ./cmds/%.cpp
 	$(CXX) $(CPPFLAGS) -c $< -o ./bin/%
 
+# for adding the binary into tesing env
 precompile: ./cmds/noop.cpp ./cmds/number.cpp ./cmds/removetag.cpp ./cmds/removetag0.cpp
 	cp /usr/bin/ls ./bin
 	cp /usr/bin/cat ./bin
