@@ -10,10 +10,10 @@ int main(int argc, char *argv[]){
     string input;
     Pipeline all;   
     // set the signal handler
-    //signal(SIGCHLD, [](int signo) {
-    //    int status;
-    //    while (waitpid(-1, &status, WNOHANG) > 0);
-    //}); 
+    signal(SIGCHLD, [](int signo) {
+        int status;
+        while (waitpid(-1, &status, WNOHANG) > 0);
+    }); 
     while(1){
         cout << "% ";
         getline(cin, input);
@@ -32,19 +32,21 @@ int main(int argc, char *argv[]){
 		first = false;
 	}
 	for (int i=0; i< cmd.get_block().size(); i++)
-	//for (auto &i: cmd.get_block())
 	{
 		int status;
 		while ( (status = cmd.get_block()[i].execute(all, first\
 			, (i == cmd.get_block().size() - 1)? true: false)) == 1)  // fork error
 			usleep(1500);
+		if (cmd.get_block()[i].get_flag() == 5)
+			exit(0);
 		first = false;
+		cout << ":";
 		if (status != 0)
 			cerr << "Fail execution on" << cmd.get_block()[i].get_argv()[0] <<endl;
 		usleep(1500);
 	}
-	//shell_fd.close();
 	all.close(0);
+	cout << "?";
 	auto last = cmd.get_block().back();
 	if (last.get_flag() == 1)
 	{

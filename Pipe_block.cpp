@@ -21,9 +21,8 @@ int Pipe_block::printenv()
 		const char * env = getenv(m_argv[1].c_str());
 		if (env != NULL)
 			cout << env << endl;
-		else
-			cout << endl;
 	}
+	raise(SIGCHLD);
 	return 0;
 }
 
@@ -33,6 +32,7 @@ int Pipe_block::setenv()
 		cerr << "Invalid arguments: setenv\n";
 	else
 		::setenv(m_argv[1].c_str(), m_argv[2].c_str(), 1);
+	raise(SIGCHLD);
 	return 0;
 }
 
@@ -58,9 +58,8 @@ int Pipe_block::execute(Pipeline& all, bool first, bool last)
 			for (auto &j: all.get_child_proc(i))
 				kill(j, SIGKILL);
 		}
+		cout << "fin\n";
 		exit(0);
-		
-		return 0;
 	}
 	else
 	{
