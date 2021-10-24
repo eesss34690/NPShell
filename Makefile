@@ -3,8 +3,8 @@ CPPFLAGS = -Wall -O2 -g -pedantic -std=c++11
 
 OBJ := main.o Pipe_block.o Command.o Pipe_IO.o Pipeline.o
 
-NPShell: $(OBJ) 
-	$(CXX) $(CPPFLAGS) $(OBJ) -o NPShell
+npshell: $(OBJ)  
+	$(CXX) $(CPPFLAGS) $(OBJ) -o npshell
 
 %.o: %.cpp
 	$(CXX) $(CPPFLAGS) -c $< -o $@
